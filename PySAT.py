@@ -96,7 +96,6 @@ class BoardCNF:
         return combinations_clause
 
     def add_cells_clauses(self, row: int, col: int) -> None:
-        #print(row, col)
         pos_trap_cells = []
         num_trap_cells = self.main_board[row][col]
         for delta_row in range(-1, 2):
@@ -148,18 +147,18 @@ class GemHunter:
     def solve(self, solver):
         board_cnf = BoardCNF(self.board, self.n, self.m)
         clause = board_cnf.gen_clauses()
-        print('Clauses:', clause)
+        #print('Clauses:', clause)
         cnf = CNF(from_clauses=clause)
         self.solver = Solver(name=solver, bootstrap_with=cnf)
         result = self.solver.solve()  # Solve the CNF formula
         if result:
             model = self.solver.get_model()
-            print('Model:', model)
+            #print('Model:', model)
             solution = copy.deepcopy(self.board)
             for i in range(self.n):
                 for j in range(self.m):
                     if solution[i][j] == '_':
-                        if model[board_cnf.id_board[i][j] - 1] > 0:
+                        if model[(i * self.m + j)] > 0:  # (i * self.m + j) is the index of the variable in the model
                             solution[i][j] = 'T'
                         else:
                             solution[i][j] = 'G'
@@ -171,7 +170,7 @@ class GemHunter:
 # -------------Example-----------------
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/test1.txt')
+    gem_hunter.gen_board('testcases/test5.txt')
     result = gem_hunter.solve('g4') # Others: 'g4', Cadical(), etc.
     if result:
         print('\nSolution:')
