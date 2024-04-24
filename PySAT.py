@@ -39,12 +39,22 @@ The use of a SAT solver ensures that the solution is correct and optimal, as it 
 from pysat.solvers import Solver
 from pysat.formula import CNF
 import copy
-
-
 # DNF from board, for all '_' cells, generate clauses for each possibility (trap or gem)
 # For each empty cell (contain a number), enforce that the number of neighboring traps matches the number indicated in the cell. (in 8 directions)
 
+# How this works:
+# The cells on the board are numbered from 1 to n*m. (representing the variables in the CNF formula: x1, x2, x3, ...)
+# For each cell, we generate a list of clauses that represent the possible configurations of traps around that cell.
+# Ex: If N_ij = 2, then there are 2 traps around the cell (i, j).
+# The number of sub_clauses = 8C(8-Nij+1) + 8C(Nij+1) = 8C7 + 8C3 = 8 + 56 = 64
+# NOTICE: THERE ARE BORDER CASES THAT NEED TO BE HANDLED (Ex: for the pos (0, 0), we only have 3 neighbors, not 8)
+# Ex: If (i,j) = (0,0) (AKA cell No.1) and N_ij = 1. The sub_clauses would be: [[2, 5], [2, 6], [5, 6], [-2, -5, -6]]
+# To handle this, we need to check if the neighbor is within the grid bounds before adding it to the sub_clauses.
+# SOLUTION: added the m, n parameters to check if the neighbor is within the grid bounds.    
 
+# Actual Math format of a Nij = 2, i = 0, j = 0 (cell No.1) would be: 
+# sub_clauses amount = 3C(3-2+1) + 3C(2+1) = 3C2 + 3C3 = 3 + 1 = 4
+# (x2 v x5) ^ (x2 v x6) ^ (x5 v x6) ^ (-x2 v -x5 v -x6) 
 class BoardCNF:
     def __init__(self, board: list, n: int, m: int):
         self.main_board = []
@@ -111,8 +121,6 @@ class BoardCNF:
                 if type(self.main_board[i][j]) is int:
                     self.add_cells_clauses(i, j)
         return self.result_clauses
-
-
 class GemHunter:
     def __init__(self):
         self.board = []
@@ -149,10 +157,7 @@ class GemHunter:
             for i in range(self.n):
                 for j in range(self.m):
                     if solution[i][j] == '_':
-                        if model[(i * self.m + j) + 1] > 0:  # (i * self.m + j) + 1 is the index of the variable in the model
-                            solution[i][j] = 'T'
-                        else:
-                            solution[i][j] = 'G'
+                        solution[i][j] = 'T' if model[board_cnf.id_board[i][j] - 1] > 0 else 'G'
             return solution
         else:
             return None
