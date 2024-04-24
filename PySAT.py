@@ -96,7 +96,7 @@ class BoardCNF:
         return combinations_clause
 
     def add_cells_clauses(self, row: int, col: int) -> None:
-        print(row, col)
+        #print(row, col)
         pos_trap_cells = []
         num_trap_cells = self.main_board[row][col]
         for delta_row in range(-1, 2):
@@ -127,6 +127,7 @@ class GemHunter:
         self.n = 0  # Number of rows
         self.m = 0  # Number of columns
         self.solver = Solver()
+        self.num_cell_amnt = 0
 
     def gen_board(self, filepath):
         with open(filepath, 'r') as f:
@@ -138,6 +139,7 @@ class GemHunter:
                 self.m = len(row)  # Number of columns
 
         # Print the board
+        print('Board size:', self.n, 'x', self.m)
         print('Input:')
         for row in self.board:
             print(','.join(row))
@@ -157,7 +159,10 @@ class GemHunter:
             for i in range(self.n):
                 for j in range(self.m):
                     if solution[i][j] == '_':
-                        solution[i][j] = 'T' if model[board_cnf.id_board[i][j] - 1] > 0 else 'G'
+                        if model[board_cnf.id_board[i][j] - 1] > 0:
+                            solution[i][j] = 'T'
+                        else:
+                            solution[i][j] = 'G'
             return solution
         else:
             return None
@@ -166,11 +171,12 @@ class GemHunter:
 # -------------Example-----------------
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/map_ex.txt')
-    result = gem_hunter.solve('g3')  # Others: 'g4', Cadical(), etc.
+    gem_hunter.gen_board('testcases/test1.txt')
+    result = gem_hunter.solve('g4') # Others: 'g4', Cadical(), etc.
     if result:
-        print('Solution:')
+        print('\nSolution:')
         for row in result:
             print(','.join(row))
     else:
         print('No solution found.')
+
