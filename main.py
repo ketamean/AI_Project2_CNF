@@ -17,7 +17,8 @@ def main(filepath):
         print("PySAT")
         gem_hunter = PySAT.GemHunter()
         gem_hunter.gen_board(filepath)
-        result = gem_hunter.solve('g4') # Others: 'g4', Cadical(), etc.
+        solver = input("Enter the solver name (g4, g3, m22, etc): ")
+        result = gem_hunter.solve(solver) # Others: 'g4', Cadical(), etc.
         if result:
             print('\nSolution:')
             for row in result:
@@ -34,4 +35,6 @@ def main(filepath):
         
         
 if __name__ == '__main__':
-    main('testcases/test2.txt')
+    print("-----------Welcome to Gem Hunter!-----------")
+    filepath = input("Enter the path of the input file (.txt): ")
+    main(filepath)
