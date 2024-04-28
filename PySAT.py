@@ -126,7 +126,6 @@ class GemHunter:
         self.n = 0  # Number of rows
         self.m = 0  # Number of columns
         self.solver = Solver()
-        self.num_cell_amnt = 0
 
     def gen_board(self, filepath):
         with open(filepath, 'r') as f:
