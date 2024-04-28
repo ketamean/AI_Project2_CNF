@@ -28,7 +28,7 @@ class BruteForceGemHunter:
             for j in range(self.m):
                 if self.board[i][j].isdigit():
                     count = 0
-                    for di, dj in itertools.product([-1, 0, 1], repeat=2):
+                    for di, dj in itertools.product([-1, 0, 1], repeat=2): # 8 directions
                         if di == dj == 0:
                             continue
                         ni, nj = i + di, j + dj
@@ -58,9 +58,3 @@ class BruteForceGemHunter:
                     print(','.join(row))
                 return
         print('No solution found.')
-
-
-# if __name__ == '__main__':
-#     brute_force_gem_hunter = BruteForceGemHunter()
-#     brute_force_gem_hunter.gen_board('test1.txt')
-#     brute_force_gem_hunter.brute_force_solve()

@@ -115,7 +115,7 @@ class CDCL:
 
             heuristic: ................................
         """
-        unassigned_vars = 
+        unassigned_vars = #np.array([var for var in cnf.variables if assignments.get(var) == None])
 
     @staticmethod
     def __conflict_analysis(cnf: np.array[np.array], assignments: Assignments):
