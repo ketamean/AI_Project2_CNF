@@ -40,6 +40,8 @@ from pysat.solvers import Solver
 from pysat.formula import CNF
 import copy
 
+from CDCL import Solver
+
 # DNF from board, for all '_' cells, generate clauses for each possibility (trap or gem)
 # For each empty cell (contain a number), enforce that the number of neighboring traps matches the number indicated in the cell. (in 8 directions)
 
