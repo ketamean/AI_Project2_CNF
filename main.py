@@ -40,7 +40,7 @@ class GemHunter:
             if pysat_res:
                 self.create_board_result(pysat_res)
         elif solve_id == 2:
-            cdcl_solver = cdcl.Solver()
+            cdcl_solver = cdcl.Solver(clauses)
             cdcl_res = cdcl_solver.solve()
             if cdcl_res:
                 self.create_board_result(cdcl_res)
