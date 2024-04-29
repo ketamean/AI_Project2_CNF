@@ -257,9 +257,6 @@ class CDCL:
             return -1, None
         # call it "clause" in general; this is the intermediate clause when processing
         clause = conflict_clause
-        for lit in clause:
-            print(lit, end=' ')
-        print()
 
         # get literals assigned at current decision level and must have antecedent (as intermediate clause will be resolved with antecedents)
         literals = [lit for lit in clause if (assignments[lit.variable].decision_level == CDCL._current_dl)]
