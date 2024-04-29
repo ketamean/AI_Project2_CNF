@@ -2,6 +2,7 @@ import cdcl
 from BoardCNF import BoardCNF
 import PySAT
 import copy
+import BruteForce_Backtrack
 
 class GemHunter:
     def __init__(self):
@@ -44,15 +45,25 @@ class GemHunter:
             cdcl_res = cdcl_solver.solve()
             if cdcl_res:
                 self.create_board_result(cdcl_res)
-        elif solve_id == 3:
-            pass
+        if solve_id == 3:
+            print('Using Backtracking:')
+            backtracking = BruteForce_Backtrack.Backtracking()
+            solution = backtracking.run(filePath)
+            if solution:
+                self.res_board = solution
         elif solve_id == 4:
-            pass
+            print('Using Brute Force:')
+            brute_force = BruteForce_Backtrack.BruteForce()
+            solution = brute_force.run(filePath)
+            if solution:
+                self.res_board = solution
 
 
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/test4.txt')
+    filePath = 'testcases/test4.txt'
+    # filePath = str(input("Enter the file path: "))
+    gem_hunter.gen_board(filePath)
     print("Please choose an algorithms, enter a number")
     print("1. PySAT")
     print("2. CDCL (self implementation)")
