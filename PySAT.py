@@ -40,7 +40,7 @@ from pysat.solvers import Solver
 from pysat.formula import CNF
 import copy
 
-from CDCL import Solver
+# from CDCL import Solver
 
 # DNF from board, for all '_' cells, generate clauses for each possibility (trap or gem)
 # For each empty cell (contain a number), enforce that the number of neighboring traps matches the number indicated in the cell. (in 8 directions)
@@ -162,7 +162,7 @@ class GemHunter:
 # -------------Example-----------------
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/test5.txt')
+    gem_hunter.gen_board('testcases/trivial.txt')
     result = gem_hunter.solve('g3')  # Others: 'g4', Cadical(), etc.
     if result:
         print('Solution:')

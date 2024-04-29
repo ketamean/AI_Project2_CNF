@@ -35,31 +35,27 @@ class Clause:
         """
         # list of values corresponds to list of literals in the clause
         values = []
-        unassigned_idx = None
+        unassigned_idx = None   # to keep index of the literal that contains the unassinged variable IF the clause is unit
         for id in range( len(self.literals) ):
             lit = self.literals[id]
             if not assignments.check_existence(lit.variable):
                 values.append(None)
-                if unassigned_idx == None:
-                    unassigned_idx = id
-                else:
-                    unassigned_idx = False
+                unassigned_idx = id
             else:
                 if lit.negation:
-                    val = not assignments[lit.variable]
+                    val = not assignments[lit.variable].value
                     values.append( val )
                 else:
-                    val = assignments[lit.variable]
+                    val = assignments[lit.variable].value
                     values.append( val )
                 
                 if val == True:
                     return 'satisfied', None
-
         # there is no True in `values`
 
         cnt = values.count(False)
         if cnt == len(values):
-            # all are False
+            # all are False, or EMPTY clause
             return 'unsatisfied', None
         
         if cnt == len(values) - 1:
@@ -197,8 +193,12 @@ class CDCL:
                 if status == 'unit': # is unit clause
                     # get the unassigned variables in the unit clause
                     unassigned_literal = clause[id]
+                    # print(unassigned_literal)
+                    # unassigned_literal = next(lit for lit in clause if not assignments.check_existence(lit.variable))
+                    # print(unassigned_literal)
+                    # print('------------')
                     var = unassigned_literal.variable
-                    val = not unassigned_literal.negation
+                    val = not unassigned_literal.negation   # make the literal satisfied (True)
 
                     assignments.assign(
                         variable=var,
@@ -206,7 +206,7 @@ class CDCL:
                         antecedent=clause,
                         dl=CDCL._current_dl
                     )
-                    finished = False # continue
+                    finished = False # continue outter while loop
                 elif status == 'unsatisfied':
                     # conflict
                     return ('conflict', clause)
@@ -225,8 +225,19 @@ class CDCL:
     def __pick_branching_variable(
         cnf: CNF,
         assignments: Assignments
-    ):
-        pass
+    ) -> tuple[int, bool]:
+        """
+            pick a branching variable and its value
+
+            returns: (var, val)
+            - var: an unassigned variable
+            - val: a boolean value for this var (True | False)
+        """
+        unassigned_vars = [var for var in cnf.variables if not assignments.check_existence(var)]
+        import random
+        var = random.choice(unassigned_vars)
+        val = random.choice( [True, False] )
+        return (var, val)
 
     @staticmethod
     def __conflict_analysis(
@@ -237,52 +248,78 @@ class CDCL:
             When a conflict occurs due to unit propagation, we invoke conflict analysis to choose a decision level to go back, instead of normally backtracking. This process differs CDCL from DPLL.
 
             Conflict analysis following the formula given in this site: https://kienyew.github.io/CDCL-SAT-Solver-from-Scratch/The-Theory.html#exploiting-structure-with-uips
-
+            Conflict analysis is to find a set of clauses that caused the conflict (antecedents). What we do is to traverse the implication graph backwards, 
             returns (b, clause):
                 - b: decision level to go back when do backtracking
                 - clause: the new learnt clause to be added to the KB (cnf)  
         """
+        if CDCL._current_dl == 0:
+            return -1, None
         # call it "clause" in general; this is the intermediate clause when processing
         clause = conflict_clause
+        for lit in clause:
+            print(lit, end=' ')
+        print()
 
         # get literals assigned at current decision level and must have antecedent (as intermediate clause will be resolved with antecedents)
-        literals = [lit for lit in clause if assignments[lit.variable].dl == CDCL._current_dl and assignments[lit.variable].antecedent != None]
-
+        literals = [lit for lit in clause if (assignments[lit.variable].decision_level == CDCL._current_dl)]
 
         # constantly resolve each lit in literals with the latest intermediate clause in the list
         # NOTE: new intermediate literals can be added to the above literal list.
-        while len(literals) != 1:
-            # len > 1 or len == 0: the last len is the new learnt clause || len == 0 means empty clause
-            lit = literals[0]
+        while len(literals) != 1: # stop at the first UIP, where number of literals assigned at decision level dl equals to 1
+            lit = next(lit for lit in literals if (assignments[lit.variable].antecedent != None))
             antecedent = assignments[lit.variable].antecedent
 
             # w(n) = w(n-1) resolve (antecedent of lit)
             clause = CDCL.__resolution_operation(clause, antecedent, lit.variable)
             
             # as `clause` may have changed so that we need to reconstruct list of literals
-            literals = [lit for lit in clause if assignments[lit.variable].dl == CDCL._current_dl and assignments[lit.variable].antecedent != None]
+            literals = [lit for lit in clause if assignments[lit.variable].decision_level == CDCL._current_dl]
         
         # after all, `clause` is the latest intermediate clause, which is the new learnt clause
         # compute backtrack level:
-        # - the deepest assignment level of literals in the clause is current 
-        decision_levels = sorted( set(assignments[lit.variable].dl for lit in clause) )
-    
-    @staticmethod
-    def __backtrack(
-        cnf: CNF,
-        assignments: Assignments,
-        kept_dl: int    # dl to go back to after backtracking
-    ):
-        """
-        
-        """
+        # - the deepest assignment level of literals in the clause is current
+        decision_levels = sorted( set(assignments[lit.variable].decision_level for lit in clause) )
+        if len(decision_levels) <= 1:
+            return 0, clause
+        return decision_levels[-2], clause  # back to the second last decision that cause the conflict
 
     @staticmethod
-    def __CDCL(cnf: CNF, assignments: Assignments):
+    def __backtrack(
+        assignments: Assignments,
+        back_lv: int
+    ) -> None:
+        """
+            backtrack to the decision level `back_lv`, unassign what happened at deeper levels
+        """
+        rm_var_list = []
+        for var, assignment in assignments.items():
+            if assignment.decision_level > back_lv:
+                rm_var_list.append(var)
+        
+        for var in rm_var_list:
+            assignments.unassign(variable=var)
+
+    @staticmethod
+    def __add_new_clause(
+        cnf: CNF,
+        new_clause: Clause
+    ) -> None:
+        """
+            add the new learnt clause to the input CNF formula
+        """
+        cnf.clauses.append(new_clause)
+
+
+    @staticmethod
+    def __CDCL(
+        cnf: CNF,
+        assignments: Assignments
+    ) -> Assignments:
         """
             run CDCL algorithm to solve the given CNF formula
-            input: cnf formula as np.array, a dict `assignments` that will contain all assignments
-            returns the result as a list of literals (e.g., [-1,2,-3,-4]) if exists; otherwise, returns None
+            input: cnf formula, a dict `assignments` that will contain all assignments
+            returns the final assignments for all of variables in the formula; or None
         """
         status, clause = CDCL.__unit_propagation(
             cnf=cnf,
@@ -306,47 +343,78 @@ class CDCL:
                 antecedent=None,
                 dl=CDCL._current_dl
             )
-
-            status, clause = CDCL.__unit_propagation(
-                cnf=cnf,
-                assignments=assignments
-            )
-
-            if status != 'conflict':
-                # if unit propagation does not lead to conflict, there is nothing to do
-                break
-            
-            # a conflict occurs with current set of assignments
-            # analyse the conflict
-            b = CDCL.__conflict_analysis(
-                conflict_clause=clause,
-                assignments=assignments
-            )
-
-            if b < 0:
-                return False
-            else:
-                CDCL.__backtrack(
+            while True:
+                status, clause = CDCL.__unit_propagation(
                     cnf=cnf,
-                    assignments=assignments,
-                    kept_dl=b
+                    assignments=assignments
                 )
-                CDCL._current_dl = b
-        return True
+
+                if status != 'conflict':
+                    # if unit propagation does not lead to conflict, there is nothing to do
+                    break # assign more variables
+                
+                # a conflict occurs with current set of assignments
+                # analyse the conflict
+                b, new_clause = CDCL.__conflict_analysis(
+                    conflict_clause=clause,
+                    assignments=assignments
+                )
+
+                if b < 0:
+                    print("b < 0")
+                    return None
+                else:
+                    CDCL.__add_new_clause(
+                        cnf=cnf,
+                        new_clause=new_clause
+                    )
+                    CDCL.__backtrack(
+                        assignments=assignments,
+                        back_lv=b
+                    )
+                    CDCL._current_dl = b
+        return assignments
 
     @staticmethod
     def solve(cnf: CNF):
         assignments = Assignments()
-        cdcl = CDCL.__CDCL(cnf=cnf, assignments=assignments)
+        return CDCL.__CDCL(cnf=cnf, assignments=assignments)
 
 class Solver:
     __cnf: CNF  # the CNF formula to be solved
-    def __init__(self, clauses: list[list[int]], variables: list[int]) -> None:
-        self.__cnf = CNF( clauses=clauses, variables=variables )
+    def __init__(self, clauses: list[list[int]]) -> None:
+        self.__variables = []
+        for clause in clauses:
+            for lit in clause:
+                var = abs(lit)
+                if var not in self.__variables:
+                    self.__variables.append( var )
+        
+        self.__cnf = CNF( clauses=clauses, variables=self.__variables )
 
     def solve(self):
-        return CDCL.solve(self.__cnf)
+        """
+            invoke CDCL algorithm solver
+
+            returns list of resulted values (e.g., [1,-2,-3,5,9,-7]); or None
+        """
+        final_assignments = CDCL.solve(self.__cnf)
+        if final_assignments == None:
+            return None
+        res = []
+        for var, assignment in final_assignments.items():
+            if assignment.value == True:
+                res.append(var)
+            else:
+                res.append(-var)
+            
+        return res
     
 if __name__ == "__main__":
-    sol = Solver([[-1,2,3], [-1,3,-5], [-5]], [1,2,3,5])
-    sol.solve()
+    """
+        T, 1
+        1, G
+    """
+    sol = Solver([[1,2], [-1,-2]])
+    res = sol.solve()
+    print(res)
