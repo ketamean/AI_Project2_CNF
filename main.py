@@ -1,6 +1,7 @@
 import cdcl
 from BoardCNF import BoardCNF
 import PySAT
+import BruteForce_Backtrack
 import copy # For deep copy of the board to store the result of the solution
 
 # -------------Documentation-----------------
@@ -57,10 +58,18 @@ class GemHunter:
             cdcl_res = cdcl_solver.solve()
             if cdcl_res:
                 self.create_board_result(cdcl_res)
-        elif solve_id == 3: # Backtracking algorithm
-            pass
-        elif solve_id == 4: # Brute-force algorithm
-            pass
+        if solve_id == 3:
+            print('Using Backtracking:')
+            backtracking = BruteForce_Backtrack.Backtracking()
+            solution = backtracking.run(input_file)
+            if solution:
+                self.res_board = solution
+        elif solve_id == 4:
+            print('Using Brute Force:')
+            brute_force = BruteForce_Backtrack.BruteForce()
+            solution = brute_force.run(input_file)
+            if solution:
+                self.res_board = solution
 
 
 if __name__ == '__main__':

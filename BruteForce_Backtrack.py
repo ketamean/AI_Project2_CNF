@@ -1,14 +1,17 @@
 import itertools
 import time
 
-# Brute Force Gem Hunter
-class BruteForceGemHunter:
+# Brute Force
+class BruteForce:
     def __init__(self):
         self.board = []
         self.n = 0  # Number of rows
         self.m = 0  # Number of columns
 
     def gen_board(self, filepath):
+        """
+        this function get in the filepath and return the generated board
+        """
         with open(filepath, 'r') as f:
             lines = f.readlines()
             for line in lines:
@@ -17,11 +20,21 @@ class BruteForceGemHunter:
                 self.n += 1  # Number of rows
                 self.m = len(row)  # Number of columns
 
-        # Print the board
-        print('Input:')
-        for row in self.board:
-            print(','.join(row))
-        print()
+    def has_number_neighbor(self, i, j):
+        """
+        i:row, j:column
+        return True if the cell[i][j] has any neighboring cells with numbers, False otherwise
+        """
+
+        # using itertools.product to get the cartesian (aka Tích Descartes)
+        # product of the list [-1, 0, 1] with itself
+        for di, dj in itertools.product([-1, 0, 1], repeat=2):
+            if di == 0 and dj == 0:
+                continue
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.n and 0 <= nj < self.m and self.board[ni][nj].isdigit():
+                return True
+        return False
 
     def is_valid_solution(self, solution):
         for i in range(self.n):
@@ -39,7 +52,14 @@ class BruteForceGemHunter:
         return True
 
     def brute_force_solve(self):
+        """
+        solve the problem using brute force
+        return the runtime and the solution
+        """
+
         start_time = time.time()
+        # Generate all possible combinations of Trap and Gem for the empty cells
+        # and check if the solution is valid
         for trap_gems in itertools.product(['T', 'G'], repeat=sum(cell == '_' for row in self.board for cell in row)):
             solution = [['_' for _ in range(self.m)] for _ in range(self.n)]
             trap_gem_index = 0
@@ -56,22 +76,33 @@ class BruteForceGemHunter:
                 return (end_time - start_time), solution
         return None, None
     
-    def print_solution(self, run_time, solution):
-        if solution:
-            print('Solution found in {:.4f} seconds:'.format(run_time))
-            for row in solution:
-                print(','.join(row))
-        else:
-            print('No solution found.')
+    def final_solution(self, run_time, solution):
+        print('Solution found in {:.4f} seconds:'.format(run_time))
+        # Modify the solution for cells with no number neighbors
+        for i in range(self.n):
+            for j in range(self.m):
+                if solution[i][j] == 'T' and not self.has_number_neighbor(i, j):
+                    solution[i][j] = 'G'
+        
+        return solution
+
+    def run(self, filePath):
+        self.gen_board(filePath)
+        run_time, solution = self.brute_force_solve()
+        return self.final_solution(run_time, solution)
 
 # Backtracking
-class BacktrackingGemHunter:
+class Backtracking:
     def __init__(self):
         self.board = []
         self.n = 0  # Number of rows
         self.m = 0  # Number of columns
 
     def gen_board(self, filepath):
+        """
+        this function get in the filepath and return the generated board with not number cell assigned to None
+        print the input board
+        """
         with open(filepath, 'r') as f:
             lines = f.readlines()
             for line in lines:
@@ -80,17 +111,20 @@ class BacktrackingGemHunter:
                 self.n += 1  # Number of rows
                 self.m = len(row)  # Number of columns
 
-        # # Print the board
-        # print('Input:')
-        # for row in self.board:
-        #     print(','.join([str(cell) if cell is not None else '_' for cell in row]))
-        # print()
-
     def get_neighbors(self, i, j):
+        """
+        i:row, j:column
+        return the neighbors of the cell[i][j]
+        """
         return [(x, y) for x in range(max(0, i-1), min(self.n, i+2))
                 for y in range(max(0, j-1), min(self.m, j+2)) if (x != i or y != j)]
 
     def is_valid(self, i, j, value, assignments):
+        """
+        checking if the value assigned to the cell[i][j] is valid
+        get in: i:row, j:column, value: True for Trap, False for Gem, assignments: the current assignments
+        return: True if the value is valid, False otherwise
+        """
         temp_assignments = assignments.copy()
         temp_assignments[(i, j)] = value
         for ni, nj in self.get_neighbors(i, j):
@@ -103,12 +137,17 @@ class BacktrackingGemHunter:
         return True
 
     def backtrack(self, assignments):
+        """
+        perform the backtracking algorithm to solve the problem
+        get in: assignments: the current assignments
+        return: True if the solution is found, False otherwise
+        """
         if len(assignments) == sum(1 for row in self.board for cell in row if cell is None):
-            return True
+            return True # solution found
 
         unassigned = [(i, j) for i in range(self.n) for j in range(self.m) if self.board[i][j] is None and (i, j) not in assignments]
         if not unassigned:
-            return True
+            return True # solution found
         i, j = min(unassigned, key=lambda x: -len([1 for ni, nj in self.get_neighbors(x[0], x[1]) if isinstance(self.board[ni][nj], int)]))
 
         for value in [True, False]:  # True for Trap, False for Gem
@@ -127,7 +166,7 @@ class BacktrackingGemHunter:
             return (end_time - start_time), assignments
         return None, None
 
-    def print_solution(self, run_time, solution):
+    def final_solution(self, run_time, solution):
         if solution:
             print('Solution found in {:.4f} seconds:'.format(run_time))
             final_output = [['_' for _ in range(self.m)] for _ in range(self.n)]
@@ -147,26 +186,23 @@ class BacktrackingGemHunter:
                         has_number_neighbor = any(isinstance(self.board[ni][nj], int) for ni, nj in self.get_neighbors(row, col))
                         if not has_number_neighbor:
                             final_output[row][col] = 'G'  # Ensure cells with no number neighbors are Gems
-
-            # Print the final adjusted board
-            for row in final_output:
-                print(','.join(row))
-        else:
-            print("No solution found.")
+        return final_output
+    
+    def run(self, filePath):
+        self.gen_board(filePath)
+        run_time, solution = self.solve()
+        return self.final_solution(run_time, solution)
 
 
 if __name__ == '__main__':
-    backtracking_gem_hunter = BacktrackingGemHunter()
-    brute_force_gem_hunter = BruteForceGemHunter()
-
-    backtracking_gem_hunter.gen_board('test3.txt')
-    brute_force_gem_hunter.gen_board('test3.txt')
+    backtracking = Backtracking()
+    brute_force = BruteForce()
 
     print('Backtracking:')
-    run_time, solution = backtracking_gem_hunter.solve()
-    backtracking_gem_hunter.print_solution(run_time, solution)
+    run_time, solution = backtracking.run('testcases/test6.txt')
+    backtracking.final_solution(run_time, solution)
 
     print('\nBrute Force:')
-    run_time, solution = brute_force_gem_hunter.brute_force_solve()
-    brute_force_gem_hunter.print_solution(run_time, solution)
+    run_time, solution = brute_force.run('testcases/test6.txt')
+    brute_force.print_solution(run_time, solution)
 
