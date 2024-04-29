@@ -33,6 +33,7 @@ class GemHunter:
     def solve(self, solve_id: int):
         board_cnf = BoardCNF(self.board, self.n, self.m)
         clauses = board_cnf.gen_clauses()
+        print(clauses)
         if solve_id == 1:
             pysat_solver = PySAT.PySatSolver(clauses)
             pysat_res = pysat_solver.solve()
