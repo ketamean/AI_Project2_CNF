@@ -41,12 +41,11 @@ class GemHunter:
                     else:
                         self.res_board[i][j] = 'G'
 
-    def solve(self, solve_id: int):
+    def solve(self, solve_id: int, input_file: str):
         board_cnf = BoardCNF(self.board, self.n, self.m)
-        print('Input:')
-        print('\n'.join([', '.join(row) for row in self.board]))
+        #print('Input:')
+        #print('\n'.join([', '.join(row) for row in self.board]))
         clauses = board_cnf.gen_clauses()
-        # print(clauses)
         if solve_id == 1:
             solver_name = input('Please enter the name of a PySAT solver (g4, g3, m22, etc): ')
             pysat_solver = PySAT.PySatSolver(clauses, solver_name)
@@ -83,7 +82,7 @@ if __name__ == '__main__':
     print("3. Backtracking algorithm")
     print("4. Brute-force algorithm")
     solver = int(input('Please choose a solving method (1-4): '))
-    gem_hunter.solve(solver)
+    gem_hunter.solve(solver, input_file)
     result = gem_hunter.res_board
     if result:
         print('\nSolution:')

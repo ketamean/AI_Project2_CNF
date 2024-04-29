@@ -15,14 +15,14 @@ if __name__ == '__main__':
         1: "PySAT",
         2: "CDCL (self implementation)",
         3: "Backtracking algorithm",
-        4: "Brute-force algorithm",
+        #4: "Brute-force algorithm",
     }
 
     for type, name in run.items():
         durations = []
         for _ in range(N_runs):
             start = time.time()
-            game.solve(type)
+            game.solve(type, FILEPATH)
             end = time.time()
             durations.append( end - start )
         avg = 0
@@ -32,3 +32,5 @@ if __name__ == '__main__':
 
         print(f'{name}: {avg} second')
         print('-----------------')
+    
+    
