@@ -1,3 +1,4 @@
+import copy
 class BoardCNF:
     def __init__(self, board: list, n: int, m: int):
         self.main_board = []
@@ -11,7 +12,8 @@ class BoardCNF:
             self.main_board.append(m_row)
         self.n = n
         self.m = m
-        self.id_board = t = [[0] * m for i in range(n)]
+        self.id_board = [[0] * m for i in range(n)]
+        self.marked_board = copy.deepcopy(self.id_board)
         self.result_clauses = []
         for i in range(0, n):
             for j in range(0, m):
@@ -49,18 +51,22 @@ class BoardCNF:
                 if 0 <= x < self.n and 0 <= y < self.m:
                     if self.main_board[x][y] == '_':
                         pos_trap_cells.append(self.id_board[x][y])
+                        self.marked_board[x][y] = 1
                     elif self.main_board[x][y] == 'T':
                         num_trap_cells -= 1
         clauses = self.gen_combine(num_trap_cells, pos_trap_cells)
-
+        self.result_clauses.append([self.id_board[row][col] * -1])
         for clause in clauses:
             self.result_clauses.append(clause)
 
     def gen_clauses(self) -> list:
         """Gen clauses using current main board and return a list that contains all the clauses."""
-        self.result_clauses.clear()
         for i in range(0, self.n):
             for j in range(0, self.m):
                 if type(self.main_board[i][j]) is int:
                     self.add_cells_clauses(i, j)
+        for i in range(0, self.n):
+            for j in range(0, self.m):
+                if self.main_board[i][j] == '_' and self.marked_board[i][j] == 0:
+                    self.result_clauses.append([self.id_board[i][j] * -1])
         return self.result_clauses
