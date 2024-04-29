@@ -33,7 +33,6 @@ class GemHunter:
     def solve(self, solve_id: int):
         board_cnf = BoardCNF(self.board, self.n, self.m)
         clauses = board_cnf.gen_clauses()
-        print(clauses)
         if solve_id == 1:
             pysat_solver = PySAT.PySatSolver(clauses)
             pysat_res = pysat_solver.solve()
@@ -52,13 +51,14 @@ class GemHunter:
 
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/test4.txt')
+    gem_hunter.gen_board('testcases/test3.txt')
     print("Please choose an algorithms, enter a number")
     print("1. PySAT")
     print("2. CDCL (self implementation)")
     print("3. Backtracking algorithm")
     print("4. Brute-force algorithm")
     x = int(input())
+    
     gem_hunter.solve(x)
     result = gem_hunter.res_board
     if result:
