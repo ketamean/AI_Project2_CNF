@@ -401,13 +401,18 @@ class Solver:
         final_assignments = CDCL.solve(self.__cnf)
         if final_assignments == None:
             return None
-        res = []
+        
+        magnitude = []
         for var, assignment in final_assignments.items():
-            if assignment.value == True:
-                res.append(var)
-            else:
-                res.append(-var)
-            
+            magnitude.append(var)
+        
+        res = sorted(magnitude)
+        for i in range(len(res)):
+            var = res[i]
+            val = final_assignments[var].value
+            if val == False:
+                res[i] = -res[i]
+        
         return res
     
 if __name__ == "__main__":
