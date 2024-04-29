@@ -39,7 +39,7 @@ class GemHunter:
             if pysat_res:
                 self.create_board_result(pysat_res)
         elif solve_id == 2:
-            cdcl_solver = cdcl.Solver()
+            cdcl_solver = cdcl.Solver(clauses)
             cdcl_res = cdcl_solver.solve()
             if cdcl_res:
                 self.create_board_result(cdcl_res)
@@ -51,7 +51,7 @@ class GemHunter:
 
 if __name__ == '__main__':
     gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/test6.txt')
+    gem_hunter.gen_board('testcases/test4.txt')
     print("Please choose an algorithms, enter a number")
     print("1. PySAT")
     print("2. CDCL (self implementation)")
