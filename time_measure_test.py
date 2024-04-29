@@ -42,7 +42,7 @@ if __name__ == '__main__':
         
     # line graph
     for v in total_avg:
-        plt.plot(run.values(), total_avg, marker='o', color = 'b')
+        plt.plot(run.values(), total_avg, marker='o')
     plt.ylabel('Time (s)')
     plt.xlabel('Solving method')
     plt.title('Time measurement for solving methods')
