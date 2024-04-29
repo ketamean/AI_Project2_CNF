@@ -68,5 +68,5 @@ class BoardCNF:
         for i in range(0, self.n):
             for j in range(0, self.m):
                 if self.main_board[i][j] == '_' and self.marked_board[i][j] == 0:
-                    self.result_clauses.append([self.id_board[i][j]] * -1)
+                    self.result_clauses.append([self.id_board[i][j] * -1])
         return self.result_clauses
