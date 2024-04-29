@@ -58,13 +58,13 @@ class GemHunter:
             if cdcl_res:
                 self.create_board_result(cdcl_res)
         if solve_id == 3:
-            print('Using Backtracking:')
+            # print('Using Backtracking:')
             backtracking = BruteForce_Backtrack.Backtracking()
             solution = backtracking.run(input_file)
             if solution:
                 self.res_board = solution
         elif solve_id == 4:
-            print('Using Brute Force:')
+            # print('Using Brute Force:')
             brute_force = BruteForce_Backtrack.BruteForce()
             solution = brute_force.run(input_file)
             if solution:

@@ -77,7 +77,7 @@ class BruteForce:
         return None, None
     
     def final_solution(self, run_time, solution):
-        print('Solution found in {:.4f} seconds:'.format(run_time))
+        # print('Solution found in {:.4f} seconds:'.format(run_time))
         # Modify the solution for cells with no number neighbors
         for i in range(self.n):
             for j in range(self.m):
@@ -168,7 +168,7 @@ class Backtracking:
 
     def final_solution(self, run_time, solution):
         if solution:
-            print('Solution found in {:.4f} seconds:'.format(run_time))
+            # print('Solution found in {:.4f} seconds:'.format(run_time))
             final_output = [['_' for _ in range(self.m)] for _ in range(self.n)]
 
             # Fill the solution into the final output
