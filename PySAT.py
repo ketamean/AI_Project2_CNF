@@ -38,18 +38,31 @@ It then uses a SAT solver to find a satisfying assignment that represents the so
 The implementation is efficient and scalable, as it can handle grids of any size and solve the puzzle in a reasonable amount of time.
 The use of a SAT solver ensures that the solution is correct and optimal, as it guarantees that all constraints are satisfied.
 """
-# -------------Implementation-----------------
+# -------------Implementation of clauses generation-----------------
 # DNF from board, for all '_' cells, generate clauses for each possibility (trap or gem)
 # For each empty cell (contain a number), enforce that the number of neighboring traps matches the number indicated in the cell. (in 8 directions)
 
+# How this works:
+# The cells on the board are numbered from 1 to n*m. (representing the variables in the CNF formula: x1, x2, x3, ...)
+# For each cell, we generate a list of clauses that represent the possible configurations of traps around that cell.
+# Ex: If N_ij = 2, then there are 2 traps around the cell (i, j).
+# The number of sub_clauses = 8C(8-Nij+1) + 8C(Nij+1) = 8C7 + 8C3 = 8 + 56 = 64
+# NOTICE: THERE ARE BORDER CASES THAT NEED TO BE HANDLED (Ex: for the pos (0, 0), we only have 3 neighbors, not 8)
+# Ex: If (i,j) = (0,0) (AKA cell No.1) and N_ij = 1. The sub_clauses would be: [[2, 5], [2, 6], [5, 6], [-2, -5, -6]]
+# To handle this, we need to check if the neighbor is within the grid bounds before adding it to the sub_clauses.
+# SOLUTION: added the m, n parameters to check if the neighbor is within the grid bounds.    
+
+# Actual Math format of a Nij = 2, i = 0, j = 0 (cell No.1) would be: 
+# sub_clauses amount = 3C(3-2+1) + 3C(2+1) = 3C2 + 3C3 = 3 + 1 = 4
+# (x2 v x5) ^ (x2 v x6) ^ (x5 v x6) ^ (-x2 v -x5 v -x6)
 
 class PySatSolver:
-    def __init__(self, clauses: list):
+    def __init__(self, clauses: list, solver: str):
         cnf = CNF(from_clauses=clauses)
-        self.solver = self.solver = Solver(name='g3', bootstrap_with=cnf)
+        self.solver = Solver(name=solver, bootstrap_with=cnf) # Initialize the solver with the CNF formula
 
     def solve(self) -> list | None:
         result = self.solver.solve()  # Solve the CNF formula
         if result:
-            return self.solver.get_model()
+            return self.solver.get_model() # Return the satisfying assignment if a solution is found
         return None
