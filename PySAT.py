@@ -1,3 +1,6 @@
+from pysat.solvers import Solver
+from pysat.formula import CNF
+
 # -------------Documentation-----------------
 """
 Using the pysat library to find the value for each variable and infer the result.
@@ -36,69 +39,17 @@ The implementation is efficient and scalable, as it can handle grids of any size
 The use of a SAT solver ensures that the solution is correct and optimal, as it guarantees that all constraints are satisfied.
 """
 # -------------Implementation-----------------
-from pysat.solvers import Solver
-from pysat.formula import CNF
-import copy
-from BoardCNF import BoardCNF
-
-# from CDCL import Solver
-
 # DNF from board, for all '_' cells, generate clauses for each possibility (trap or gem)
 # For each empty cell (contain a number), enforce that the number of neighboring traps matches the number indicated in the cell. (in 8 directions)
 
-class GemHunter:
-    def __init__(self):
-        self.board = []
-        self.n = 0  # Number of rows
-        self.m = 0  # Number of columns
-        self.solver = Solver()
 
-    def gen_board(self, filepath):
-        with open(filepath, 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                row = line.strip().split(', ')
-                self.board.append(row)
-                self.n += 1  # Number of rows
-                self.m = len(row)  # Number of columns
+class PySatSolver:
+    def __init__(self, clauses: list):
+        cnf = CNF(from_clauses=clauses)
+        self.solver = self.solver = Solver(name='g3', bootstrap_with=cnf)
 
-        # Print the board
-        # print('Input:')
-        # for row in self.board:
-        #     print(','.join(row))
-        # print()
-
-    def solve(self, solver):
-        board_cnf = BoardCNF(self.board, self.n, self.m)
-        clause = board_cnf.gen_clauses()
-        #print('Clauses:', clause)
-        cnf = CNF(from_clauses=clause)
-        self.solver = Solver(name=solver, bootstrap_with=cnf)
+    def solve(self) -> list | None:
         result = self.solver.solve()  # Solve the CNF formula
         if result:
-            model = self.solver.get_model()
-            #print('Model:', model)
-            solution = copy.deepcopy(self.board)
-            for i in range(self.n):
-                for j in range(self.m):
-                    if solution[i][j] == '_':
-                        if model[(i * self.m + j)] > 0:  # (i * self.m + j) + 1 is the index of the variable in the model
-                            solution[i][j] = 'T'
-                        else:
-                            solution[i][j] = 'G'
-            return solution
-        else:
-            return None
-
-
-# -------------Example-----------------
-if __name__ == '__main__':
-    gem_hunter = GemHunter()
-    gem_hunter.gen_board('testcases/trivial.txt')
-    result = gem_hunter.solve('g3')  # Others: 'g4', Cadical(), etc.
-    if result:
-        print('Solution:')
-        for row in result:
-            print(','.join(row))
-    else:
-        print('No solution found.')
+            return self.solver.get_model()
+        return None

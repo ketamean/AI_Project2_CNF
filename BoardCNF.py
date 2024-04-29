@@ -1,3 +1,4 @@
+import copy
 class BoardCNF:
     def __init__(self, board: list, n: int, m: int):
         self.main_board = []
